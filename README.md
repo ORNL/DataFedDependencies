@@ -14,16 +14,4 @@ Please refer to the [DataFed homepage](https://ornl.github.io/DataFed) for full
 documentation, papers, and presentations describing the architecture and use
 cases of DataFed.
 
-Refer to the "BUILD.md" file for instructions on how to configure and build DataFed.
-
-# Installation Core Server and Web Server
-
-Please see documentation at doc_source/source/admin/general.rst for installation instructions.
-
-# Versions
-All versions follow the semantic versioning scheme with the exception of the RELEASE version which follows a calendar release.
-YEAR.MONTH.DAY.HOUR.MINUTE
-
-# Warning
-
-If encountering strange seg faults with zmq, it is possible that it is caused by reusing an address when creating a socket.
+NOTE: This repository is meant simply for managing the external dependencies of DataFed.
