@@ -138,3 +138,7 @@ if [ "$local_INSTALL_ARANGO" == "TRUE" ]
 then
   install_arangodb
 fi
+
+echo "===== CLEANUP BUILD FILES ======"
+echo "===== REMOVING ${PROJECT_ROOT}/external ======"
+"$SUDO_CMD" rm -rf "${PROJECT_ROOT}/external"

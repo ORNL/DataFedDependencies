@@ -19,13 +19,13 @@ if [ ! -d "${PROJECT_ROOT}/tmp" ]; then
     mkdir -p "${PROJECT_ROOT}/tmp"
 fi
 
-if [ ! -e "${PROJECT_ROOT}/config/datafed.sh" ]
+if [ ! -e "${PROJECT_ROOT}/config/dependencies.sh" ]
 then
-  echo "Please run generate_datafed.sh before installing dependencies"
+  echo "Please run generate_dependencies_config.sh before installing dependencies"
   exit 1
 fi
 
-source "${PROJECT_ROOT}/config/datafed.sh"
+source "${PROJECT_ROOT}/config/dependencies.sh"
 
 if [ ! -e "$DATAFED_DEPENDENCIES_INSTALL_PATH" ] || [ ! -d "$DATAFED_DEPENDENCIES_INSTALL_PATH" ]; then
     parent_dir=$(dirname "${DATAFED_DEPENDENCIES_INSTALL_PATH}")
@@ -147,11 +147,11 @@ install_python() {
 init_python() {
 
   if [[ ! -v DATAFED_PYTHON_DEPENDENCIES_DIR ]]; then
-    echo "DATAFED_PYTHON_DEPENDENCIES_DIR is not defined please make sure it is defined in the ${PROJECT_ROOT}/config/datafed.sh file."
+    echo "DATAFED_PYTHON_DEPENDENCIES_DIR is not defined please make sure it is defined in the ${PROJECT_ROOT}/config/dependencies.sh file."
     exit 1
   else
     if [[ -z "$DATAFED_PYTHON_DEPENDENCIES_DIR" ]]; then
-      echo "DATAFED_PYTHON_DEPENDENCIES_DIR is defined but is empty please make sure it is defined in ${PROJECT_ROOT}/config/datafed.sh file."
+      echo "DATAFED_PYTHON_DEPENDENCIES_DIR is defined but is empty please make sure it is defined in ${PROJECT_ROOT}/config/dependencies.sh file."
       exit 1
     fi
   fi
@@ -486,7 +486,6 @@ install_ws_node_packages() {
   fi
 
   # Configure the package.json.in file -> package.json
-  cmake -P "${PROJECT_ROOT}/cmake/Web.cmake"
   export NVM_DIR="${DATAFED_DEPENDENCIES_INSTALL_PATH}/nvm"
   export NODE_VERSION="$DATAFED_NODE_VERSION"
   "$NVM_DIR/nvm-exec" npm --prefix "${PROJECT_ROOT}/web" install "${PROJECT_ROOT}/web"
@@ -567,7 +566,7 @@ install_foxx_cli() {
 }
 
 install_arangodb() {
-  curl -OL https://download.arangodb.com/arangodb312/DEBIAN/Release.key
+  LD_LIBRARY_PATH="$LD_LIBRARY_PATH" curl -OL https://download.arangodb.com/arangodb312/DEBIAN/Release.key
   "$SUDO_CMD" apt-key add - < Release.key
   echo 'deb https://download.arangodb.com/arangodb312/DEBIAN/ /' | "$SUDO_CMD" tee /etc/apt/sources.list.d/arangodb.list
   "$SUDO_CMD" apt-get install apt-transport-https

@@ -22,7 +22,7 @@ Help()
   echo "options:"
   echo "-h, --help                        Print this help message"
   echo "-n, --node_install_dir            Install directory, defaults to"
-  echo "                                  whatever is defined in the datafed.sh file"
+  echo "                                  whatever is defined in the dependencies.sh file"
   echo "                                  DATAFED_DEPENDENCIES_INSTALL_PATH"
   echo "                                  ${DATAFED_DEPENDENCIES_INSTALL_PATH}"
   echo "-u, --unify                       Unifies install scripts to be used in docker builds"
