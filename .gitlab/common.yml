@@ -1,0 +1,153 @@
+---
+# Description
+#
+# This file contains several anchors and templates that are reusued across the
+# project. A definition of the variables that are used in this file are shown
+# below
+#
+# Variables
+#
+# DOCKER_FILE_PATH
+# The path to the 'Dockerfile' used in image building,
+# assuming you are located at the root of the project. e.g.
+# ./web/docker/Dockerfile
+#
+# REGISTRY
+# The name of the image registry build images are placed in. i.e. camden.ornl.gov
+#
+# PROJECT
+# The name of the project in the image registry will probably
+# be datafed, used to to upload to the right registry location
+#
+# DATAFED_HARBOR_REPOSITORY
+# This is the name of the image that is being checked. e.g. ws-devel for the
+# web image created on the development branch
+#
+# CI_COMMIT_REF_NAME
+# Used for getting the branch name, which is used in docker image tagging
+#
+# REGISTRY
+# The name of the image registry build images are placed in
+#
+# PROJECT
+# The name of the project in the image registry will probably
+# be datafed, used to to upload to the right registry location
+#
+# COMPONENT
+# The component of datafed associated with the image, used to tag the image.
+#
+# HARBOR_USER
+# The user account needed for pushing to the harbor image registry
+#
+# HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN
+# The token needed to upload the image to the registry.
+#
+# BUILD_INTERMEDIATE
+# A boolean value indicating if there is an intermediate image that needs to
+# be pushed to the image repository. Sometimes this is wanted for testing. For
+# instance you may want an intermediate file that has all the build files, where
+# the final image does not contain this files. Can be set to string "TRUE" or
+# "FALSE"
+#
+# INTERMEDIATE_TARGET
+# This is the name of the layer that exists in the Dockerfile that we are tagging
+# an intermediate docker image after.
+#
+# INTERMEDIATE_LAYER_NAME
+# This is used when tagging the image to help differentiate different layers
+
+.image_check:
+    tags:
+        - docker
+    script:
+        - |
+            docker login "${REGISTRY}" -u "${HARBOR_USER}" -p "${HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN}"
+            FORCE_BUILD="FALSE"
+            set +e
+            docker pull --quiet "${REGISTRY}/${PROJECT}/${COMPONENT}:latest"
+            if [ $? -eq 0 ]; then echo "Image exists"; else FORCE_BUILD="TRUE"; fi;
+            set -e
+            if [ "${BUILD_INTERMEDIATE}" == "TRUE" ]
+            then
+              set +e
+              docker pull --quiet "${REGISTRY}/${PROJECT}/${COMPONENT}-${INTERMEDIATE_LAYER_NAME}:latest"
+              if [ $? -eq 0 ]; then echo "Image exists"; else FORCE_BUILD="TRUE"; fi;
+              set -e
+            fi
+            if [ "$FORCE_BUILD" == "TRUE" ]
+            then
+              cp .gitlab/build/force_build_${COMPONENT}_image.yml ${COMPONENT}_image.yml
+            else
+              cp .gitlab/build/build_${COMPONENT}_image.yml ${COMPONENT}_image.yml
+            fi
+            echo "REGISTRY=${REGISTRY}" >> build.env
+            echo "HARBOR_USER=${HARBOR_USER}" >> build.env
+            echo "HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN=${HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN}" >> build.env
+            sed -i 's/\(HARBOR_USER=.*\)\$/\1$$/g' build.env
+    artifacts:
+        paths:
+            - ${COMPONENT}_image.yml
+        reports:
+            dotenv: build.env
+
+# The purpose of this anchor is to check that an image has been uploaded correctly
+# to the registry and if it has not attempt to upload it again.
+#
+# Inputs
+#
+# REGISTRY                  - needed to push to registry and ci_harbor_artifact_count
+# PROJECT                   - needed to push to registry and ci_harbor_artifact_count
+# DATAFED_HARBOR_REPOSITORY - needed to run ci_harbor_artifact_count and push to registry
+# DATAFED_HARBOR_USERNAME   - needed to run ci_harbor_artifact_count
+# DATAFED_HARBOR_PASSWORD   - needed to run ci_harbor_artifact_count
+.verify_image_upload: &verify_image_upload |
+    first_iteration="TRUE"
+    artifact_count="0"
+    while [ "$artifact_count" == "0" ]; do
+      artifact_count=$( "${CI_PROJECT_DIR}/scripts/ci_harbor_artifact_count.sh" -r "${DATAFED_HARBOR_REPOSITORY}")
+      error_code="$?"
+      if [ "$error_code" -ne 0 ]
+      then
+        echo "Error encountered in ci_harbor_artifact_count $error_code"
+        cat "${CI_PROJECT_DIR}/harbor_check.log"
+        exit 1
+      fi;
+      echo "Artifact missing from harbor..."
+      docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:latest"
+      docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:$CI_COMMIT_SHA"
+      if [ "$first_iteration" == "FALSE" ]
+      then
+        sleep 5  # Optional: Add a sleep to avoid busy waiting 
+      else
+        first_iteration="FALSE"
+      fi
+    done
+
+# NOTE
+#
+# Cases have been observed where an image has been pushed to the image registry but
+# but the image for some reason is not registered with the Harbor instance. The
+# retry loop is used to retry pushing to the registry to add some resliency to the
+# ci pipeline in the case of poor networking issues while attempting to upload
+#
+# Outputs
+#
+# DATAFED_HARBOR_USERNAME   - needed to run verify_image_upload
+# DATAFED_HARBOR_PASSWORD   - needed to run verify_image_upload
+.docker_base_build_script:
+    script:
+        - docker system prune -f
+        - docker build --no-cache -f "${DOCKER_FILE_PATH}" -t "${REGISTRY}/${PROJECT}/${COMPONENT}:latest" .
+        - echo "Tagging ${REGISTRY}/${PROJECT}/${COMPONENT}:latest as ${REGISTRY}/${PROJECT}/${COMPONENT}:$CI_COMMIT_SHA"
+        - docker tag "${REGISTRY}/${PROJECT}/${COMPONENT}:latest" "${REGISTRY}/${PROJECT}/${COMPONENT}:$CI_COMMIT_SHA"
+        - docker login "${REGISTRY}" -u "${HARBOR_USER}" -p "${HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN}"
+        - export DATAFED_HARBOR_REPOSITORY="${COMPONENT}"
+        - export DATAFED_HARBOR_USERNAME="${HARBOR_USER}"
+        - export DATAFED_HARBOR_PASSWORD="${HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN}"
+        - docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:latest"
+        - echo "Pushing: ${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:$CI_COMMIT_SHA"
+        - docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:$CI_COMMIT_SHA"
+        - *verify_image_upload
+    after_script:
+        # Needed if the harbor check script errors out.
+        - if [ -f "${CI_PROJECT_DIR}/harbor_check.log" ]; then cat "${CI_PROJECT_DIR}/harbor_check.log"; fi;
