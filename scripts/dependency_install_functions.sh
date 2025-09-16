@@ -589,7 +589,6 @@ install_openssl() {
 
     git clone https://github.com/openssl/openssl "${PROJECT_ROOT}/external/openssl"
     cd "${PROJECT_ROOT}/external/openssl"
-    git checkout "$DATAFED_OPENSSL_COMMIT"
     ./config --prefix="${DATAFED_DEPENDENCIES_INSTALL_PATH}"
     make -j 8
 
