@@ -203,16 +203,22 @@ install_protobuf() {
       # sudo required because of egg file
       "$SUDO_CMD" rm -rf "${PROJECT_ROOT}/external/protobuf"
     fi
-    # Here we are using clone instead of submodule update, because submodule
-    # requires the .git folder exist and the current folder be considered a repo
-    # this creates problems in docker because each time a commit is made the 
-    # .git folder contents are changed causing a fresh rebuild of all containers
-    git clone "https://github.com/protocolbuffers/protobuf.git" \
-      "${PROJECT_ROOT}/external/protobuf"
 
+    # History
+    #
+    # 1. Here we were using clone instead of submodule update, because
+    # submodule requires the .git folder exist and the current folder be
+    # considered a repo this creates problems in docker because each time a
+    # commit is made the .git folder contents are changed causing a fresh
+    # rebuild of all containers.
+    # 2. Clone was dropped in favor of wget due to
+    # download times taking to long as well as the disk space used to pull in
+    # the git repositories history which is not needed.
+
+    wget "https://github.com/protocolbuffers/protobuf/releases/download/v${DATAFED_PROTOBUF_VERSION}/protobuf-${DATAFED_PROTOBUF_VERSION}.tar.gz"
+    mkdir -p "${PROJECT_ROOT}/external/protobuf"
+    tar -xvzf "protobuf-${DATAFED_PROTOBUF_VERSION}.tar.gz" -C "${PROJECT_ROOT}/external/protobuf" --strip-components=1
     cd "${PROJECT_ROOT}/external/protobuf"
-    git checkout "v${DATAFED_PROTOBUF_VERSION}"
-    git submodule update --init --recursive
     # Build static library, cannot build shared library at same time apparently
     # there cannot be a shared libsodium file in the
     # DATAFED_DEPENDENCIES_INSTALL_PREFIX if you want to have everything static
