@@ -26,8 +26,8 @@ done
 
 init_python
 source "${DATAFED_PYTHON_ENV}/bin/activate"
-"python${DATAFED_PYTHON_VERSION}" -m pip install "${pip_packages[@]}"
-"python${DATAFED_PYTHON_VERSION}" -m pip install -r "${PROJECT_ROOT}/python/datafed_pkg/requirements.txt"
+LD_LIBRARY_PATH="$LD_LIBRARY_PATH" "python${DATAFED_PYTHON_VERSION}" -m pip install "${pip_packages[@]}"
+LD_LIBRARY_PATH="$LD_LIBRARY_PATH" "python${DATAFED_PYTHON_VERSION}" -m pip install -r "${PROJECT_ROOT}/python/datafed_pkg/requirements.txt"
 
 cd ~
 
