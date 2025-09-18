@@ -160,9 +160,9 @@ init_python() {
       mkdir -p "$DATAFED_PYTHON_DEPENDENCIES_DIR"
   fi
 
-  "python${DATAFED_PYTHON_VERSION}" -m venv "${DATAFED_PYTHON_ENV}"
+  LD_LIBRARY_PATH="$LD_LIBRARY_PATH" "python${DATAFED_PYTHON_VERSION}" -m venv "${DATAFED_PYTHON_ENV}"
   # Make sure that pip is installed and upgraded
-  "python${DATAFED_PYTHON_VERSION}" -m ensurepip --upgrade
+  LD_LIBRARY_PATH="$LD_LIBRARY_PATH" "python${DATAFED_PYTHON_VERSION}" -m ensurepip --upgrade
 }
 
 install_cmake() {
