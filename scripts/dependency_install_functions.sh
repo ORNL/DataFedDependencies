@@ -127,8 +127,6 @@ install_python() {
 
     export CPPFLAGS="-I${DATAFED_DEPENDENCIES_INSTALL_PATH}/include $CPPFLAGS"
     export LDFLAGS="-L${DATAFED_DEPENDENCIES_INSTALL_PATH}/lib -L${DATAFED_DEPENDENCIES_INSTALL_PATH}/lib64 -Wl,-rpath,${DATAFED_DEPENDENCIES_INSTALL_PATH}/lib $LDFLAGS"
-    echo "LD_LIBRARY_PATH is"
-    echo "${LD_LIBRARY_PATH}"
     ./configure --prefix="${DATAFED_PYTHON_DEPENDENCIES_DIR}" --with-openssl="${DATAFED_DEPENDENCIES_INSTALL_PATH}" --with-openssl-rpath=auto --enable-loadable-sqlite-extensions
     make -j$(nproc)
     make altinstall
