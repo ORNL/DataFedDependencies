@@ -43,12 +43,12 @@ fi
 # replace ! -v LD_LIBRARY_PATH with ! -v ${LD_LIBRARY_PATH} because this is
 # checking if the variable even exists.
 if [[ ! -v LD_LIBRARY_PATH ]]; then
-  LD_LIBRARY_PATH="$DATAFED_DEPENDENCIES_INSTALL_PATH/lib"
+  LD_LIBRARY_PATH="$DATAFED_DEPENDENCIES_INSTALL_PATH/lib:$DATAFED_DEPENDENCIES_INSTALL_PATH/lib64"
 else
   if [[ -n "$LD_LIBRARY_PATH" ]]; then
-    LD_LIBRARY_PATH="$DATAFED_DEPENDENCIES_INSTALL_PATH/lib:$LD_LIBRARY_PATH"
+    LD_LIBRARY_PATH="$DATAFED_DEPENDENCIES_INSTALL_PATH/lib:$DATAFED_DEPENDENCIES_INSTALL_PATH/lib64:$LD_LIBRARY_PATH"
   else
-    LD_LIBRARY_PATH="$DATAFED_DEPENDENCIES_INSTALL_PATH/lib"
+    LD_LIBRARY_PATH="$DATAFED_DEPENDENCIES_INSTALL_PATH/lib:$DATAFED_DEPENDENCIES_INSTALL_PATH/lib64"
   fi
 fi
 
@@ -125,16 +125,16 @@ install_python() {
     tar -xf "Python-${DATAFED_PYTHON_VERSION_FULL}.tgz"
     cd "Python-${DATAFED_PYTHON_VERSION_FULL}" 
 
-    export CPPFLAGS="-I${DATAFED_DEPENDENCIES_INSTALL_PATH}/include $CPPFLAGS"
-    export LDFLAGS="-L${DATAFED_DEPENDENCIES_INSTALL_PATH}/lib -Wl,-rpath,${DATAFED_DEPENDENCIES_INSTALL_PATH}/lib $LDFLAGS"
-    ./configure --prefix="${DATAFED_PYTHON_DEPENDENCIES_DIR}" --with-openssl="${DATAFED_DEPENDENCIES_INSTALL_PATH}" --with-openssl-rpath=auto --enable-loadable-sqlite-extensions
-    make -j$(nproc)
-    make altinstall
+    export CPPFLAGS="-I${DATAFED_DEPENDENCIES_INSTALL_PATH}/include"
+    export LDFLAGS="-L${DATAFED_DEPENDENCIES_INSTALL_PATH}/lib -L${DATAFED_DEPENDENCIES_INSTALL_PATH}/lib64"
+    LD_LIBRARY_PATH="$LD_LIBRARY_PATH" ./configure --prefix="${DATAFED_PYTHON_DEPENDENCIES_DIR}" --with-openssl="${DATAFED_DEPENDENCIES_INSTALL_PATH}"
+    LD_LIBRARY_PATH="$LD_LIBRARY_PATH" make -j$(nproc)
+    LD_LIBRARY_PATH="$LD_LIBRARY_PATH" make altinstall
 
     mkdir -p "${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin"
-    # Delete link if it exists
-    rm -rf "${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin/python${DATAFED_PYTHON_VERSION}"
-    ln -s "${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}" "${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin/python${DATAFED_PYTHON_VERSION}"
+    if [ ! -f ${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin/python${DATAFED_PYTHON_VERSION} ]; then
+      ln -s "${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}" "${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin/python${DATAFED_PYTHON_VERSION}"
+    fi
     export PYTHON="${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}"
 
     touch "${DATAFED_DEPENDENCIES_INSTALL_PATH}/${PYTHON_FLAG_PREFIX}${DATAFED_PYTHON_VERSION}"
@@ -160,9 +160,11 @@ init_python() {
       mkdir -p "$DATAFED_PYTHON_DEPENDENCIES_DIR"
   fi
 
-  "python${DATAFED_PYTHON_VERSION}" -m venv "${DATAFED_PYTHON_ENV}"
+  echo "venv creating"
+  LD_LIBRARY_PATH="$LD_LIBRARY_PATH" ${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION} -m venv "${DATAFED_PYTHON_ENV}"
   # Make sure that pip is installed and upgraded
-  "python${DATAFED_PYTHON_VERSION}" -m ensurepip --upgrade
+  LD_LIBRARY_PATH="$LD_LIBRARY_PATH" "${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}" -c "import ssl; print(ssl.OPENSSL_VERSION)"
+  LD_LIBRARY_PATH="$LD_LIBRARY_PATH" "${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}" -m ensurepip --upgrade
 }
 
 install_cmake() {
@@ -589,7 +591,6 @@ install_openssl() {
 
     git clone https://github.com/openssl/openssl "${PROJECT_ROOT}/external/openssl"
     cd "${PROJECT_ROOT}/external/openssl"
-    git checkout "$DATAFED_OPENSSL_COMMIT"
     ./config --prefix="${DATAFED_DEPENDENCIES_INSTALL_PATH}"
     make -j 8
 
