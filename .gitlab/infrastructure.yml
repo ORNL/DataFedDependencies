@@ -4,6 +4,7 @@
 ################################################################################
 # ci-infrastructure-check stage is designed to check that the infrastructure is
 # up and running before attempting to launch the CI pipelines
+# ci-datafed-client runs the sas jobs
 
 check-ci-infrastructure:
     stage: ci-infrastructure-check
@@ -12,7 +13,7 @@ check-ci-infrastructure:
     script:
         - |
             BUILD_INFRASTRUCTURE="FALSE"
-            COMPUTE_INSTANCE_NAMES=("ci-datafed-arangodb" "ci-datafed-core" "ci-datafed-globus2" "ci-datafed-client")
+            COMPUTE_INSTANCE_NAMES=("ci-datafed-dependencies" "ci-datafed-client")
             for INSTANCE_NAME in "${COMPUTE_INSTANCE_NAMES[@]}"; do
               set +e
               ./scripts/ci_pipeline_setup.sh --compute-instance-name "$INSTANCE_NAME"
@@ -54,7 +55,7 @@ run-trigger-job:
 signal:
     stage: signal
     tags:
-        - docker
+        - ci-datafed-dependencies
     script:
         - echo "Starting Build"
     rules:
