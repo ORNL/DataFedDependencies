@@ -12,4 +12,4 @@ build-dependencies:
         GIT_STRATEGY: clone
         DOCKER_FILE_PATH: "docker/Dockerfile.dependencies"
     tags:
-        - docker
+        - ci-datafed-dependencies

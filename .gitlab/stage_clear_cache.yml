@@ -11,9 +11,9 @@
         - ./scripts/ci_purge_images.sh
         - df -h
 
-clear-core-cache:
+clear-dependencies-cache:
     extends: .clear_cache
     stage: clear-docker-cache
     needs: ["signal"]
     tags:
-        - ci_1
+        - ci-datafed-dependencies
