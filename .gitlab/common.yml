@@ -63,6 +63,7 @@
         - |
             docker login "${REGISTRY}" -u "${HARBOR_USER}" -p "${HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN}"
             FORCE_BUILD="FALSE"
+            echo "Current git commit is"
             set +e
             docker pull --quiet "${REGISTRY}/${PROJECT}/${COMPONENT}:latest"
             if [ $? -eq 0 ]; then echo "Image exists"; else FORCE_BUILD="TRUE"; fi;
