@@ -61,6 +61,8 @@
         - docker
     script:
         - |
+            CURRENT_COMMIT=$(git rev-parse HEAD)
+            echo "Current Commit is: $CURRENT_COMMIT CI_COMMIT_SHA is $CI_COMMIT_SHA"
             docker login "${REGISTRY}" -u "${HARBOR_USER}" -p "${HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN}"
             FORCE_BUILD="FALSE"
             set +e
@@ -137,6 +139,9 @@
 .docker_base_build_script:
     script:
         - docker system prune -f
+        - CURRENT_COMMIT=$(git rev-parse HEAD)
+        - echo "Current Commit is: $CURRENT_COMMIT CI_COMMIT_SHA is $CI_COMMIT_SHA"
+        - echo "Building image at $CI_COMMIT_SHA"
         - docker build --no-cache -f "${DOCKER_FILE_PATH}" -t "${REGISTRY}/${PROJECT}/${COMPONENT}:latest" .
         - echo "Tagging ${REGISTRY}/${PROJECT}/${COMPONENT}:latest as ${REGISTRY}/${PROJECT}/${COMPONENT}:$CI_COMMIT_SHA"
         - docker tag "${REGISTRY}/${PROJECT}/${COMPONENT}:latest" "${REGISTRY}/${PROJECT}/${COMPONENT}:$CI_COMMIT_SHA"
@@ -145,6 +150,7 @@
         - export DATAFED_HARBOR_USERNAME="${HARBOR_USER}"
         - export DATAFED_HARBOR_PASSWORD="${HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN}"
         - docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:latest"
+        - echo "Pushing: ${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:$CI_COMMIT_SHA"
         - docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:$CI_COMMIT_SHA"
         - *verify_image_upload
     after_script:
