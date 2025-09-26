@@ -372,7 +372,7 @@ install_nlohmann_json() {
     fi
 
     wget https://github.com/nlohmann/json/archive/refs/tags/v${DATAFED_NLOHMANN_JSON_VERSION}.tar.gz
-    mkdir -p json
+    mkdir -p "${PROJECT_ROOT}/external/json"
     tar -xvzf v${DATAFED_NLOHMANN_JSON_VERSION}.tar.gz -C "${PROJECT_ROOT}/external/json" --strip-components=1
     cd "${PROJECT_ROOT}/external/json"
     echo "FILE STRUCTURE $(ls)"
