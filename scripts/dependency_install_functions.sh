@@ -107,7 +107,7 @@ install_python() {
 
   local PYTHON_FLAG_PREFIX=".python_installed-"
   clean_install_flags "$PYTHON_FLAG_PREFIX"
-  if [ ! -e "${DATAFED_DEPENDENCIES_INSTALL_PATH}/${PYTHON_FLAG_PREFIX}${DATAFED_PYTHON_VERSION}" ]; then
+  if [ ! -e "${DATAFED_PYTHON_DEPENDENCIES_DIR}/${PYTHON_FLAG_PREFIX}${DATAFED_PYTHON_VERSION}" ]; then
     local original_dir=$(pwd)
 
     # Check if openssl is already installed, otherwise error since openssl is required
@@ -131,17 +131,18 @@ install_python() {
     LD_LIBRARY_PATH="$LD_LIBRARY_PATH" make -j$(nproc)
     LD_LIBRARY_PATH="$LD_LIBRARY_PATH" make altinstall
 
-    mkdir -p "${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin"
-    if [ ! -f ${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin/python${DATAFED_PYTHON_VERSION} ]; then
-      ln -s "${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}" "${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin/python${DATAFED_PYTHON_VERSION}"
-    fi
-    export PYTHON="${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}"
-
-    touch "${DATAFED_DEPENDENCIES_INSTALL_PATH}/${PYTHON_FLAG_PREFIX}${DATAFED_PYTHON_VERSION}"
+    touch "${DATAFED_PYTHON_DEPENDENCIES_DIR}/${PYTHON_FLAG_PREFIX}${DATAFED_PYTHON_VERSION}"
     cd "$original_dir"
   else
     echo "Python already installed, skipping..."
   fi
+
+  # Recreate link regardless, doesn't cost anything
+  mkdir -p "${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin"
+  if [ ! -f ${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin/python${DATAFED_PYTHON_VERSION} ]; then
+    ln -s "${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}" "${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin/python${DATAFED_PYTHON_VERSION}"
+  fi
+  export PYTHON="${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}"
 }
 
 init_python() {
