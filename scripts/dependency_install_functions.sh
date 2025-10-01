@@ -122,7 +122,7 @@ install_python() {
     "$SUDO_CMD" apt install -y build-essential libreadline-dev zlib1g-dev libffi-dev wget libsqlite3-dev
 
     wget "https://www.python.org/ftp/python/${DATAFED_PYTHON_VERSION_FULL}/Python-${DATAFED_PYTHON_VERSION_FULL}.tgz"
-    tar -xf "Python-${DATAFED_PYTHON_VERSION_FULL}.tgz"
+    tar --checkpoint=.100 -xf "Python-${DATAFED_PYTHON_VERSION_FULL}.tgz"
     cd "Python-${DATAFED_PYTHON_VERSION_FULL}" 
 
     export CPPFLAGS="-I${DATAFED_DEPENDENCIES_INSTALL_PATH}/include"
@@ -176,7 +176,7 @@ install_cmake() {
     # Version 3.20 of cmake and onwards starting using all lower case in the package names, previos versions use a
     # a capital L in the name.
     wget https://github.com/Kitware/CMake/releases/download/v${DATAFED_CMAKE_VERSION}/cmake-${DATAFED_CMAKE_VERSION}-linux-x86_64.tar.gz
-    tar -xzvf "cmake-${DATAFED_CMAKE_VERSION}-linux-x86_64.tar.gz" >/dev/null 2>&1
+    tar --checkpoint=.100 -xzvf "cmake-${DATAFED_CMAKE_VERSION}-linux-x86_64.tar.gz" >/dev/null 2>&1
     cp -r "cmake-${DATAFED_CMAKE_VERSION}-linux-x86_64/bin" "${DATAFED_DEPENDENCIES_INSTALL_PATH}"
     cp -r "cmake-${DATAFED_CMAKE_VERSION}-linux-x86_64/share" "${DATAFED_DEPENDENCIES_INSTALL_PATH}"
 
@@ -276,7 +276,7 @@ install_libsodium() {
     # Using the git repo directly results in build instability because of additional network calls when running
     # autogen.sh.
     wget "https://download.libsodium.org/libsodium/releases/libsodium-${DATAFED_LIBSODIUM_VERSION}.tar.gz" -P "${PROJECT_ROOT}/external"
-    tar -xvzf "${PROJECT_ROOT}/external/libsodium-${DATAFED_LIBSODIUM_VERSION}.tar.gz" -C "${PROJECT_ROOT}/external/"
+    tar --checkpoint=.100 -xvzf "${PROJECT_ROOT}/external/libsodium-${DATAFED_LIBSODIUM_VERSION}.tar.gz" -C "${PROJECT_ROOT}/external/"
     cd "${PROJECT_ROOT}/external/libsodium-${DATAFED_LIBSODIUM_VERSION}"
     # Build static ONLY!!!!
     # Note if zmq detects a shared sodium library it will grab it no matter what
@@ -374,7 +374,7 @@ install_nlohmann_json() {
 
     wget https://github.com/nlohmann/json/archive/refs/tags/v${DATAFED_NLOHMANN_JSON_VERSION}.tar.gz
     mkdir -p "${PROJECT_ROOT}/external/json"
-    tar -xvzf v${DATAFED_NLOHMANN_JSON_VERSION}.tar.gz -C "${PROJECT_ROOT}/external/json" --strip-components=1
+    tar  --checkpoint=.100 -xvzf v${DATAFED_NLOHMANN_JSON_VERSION}.tar.gz -C "${PROJECT_ROOT}/external/json" --strip-components=1
     cd "${PROJECT_ROOT}/external/json"
     echo "FILE STRUCTURE $(ls)"
     # Build static
@@ -630,7 +630,7 @@ install_libcurl() {
     fi
     wget "${DATAFED_LIBCURL_URL}"
     mkdir -p "${PROJECT_ROOT}/external/libcurl"
-    tar -xf "curl-${DATAFED_LIBCURL}.tar.gz" -C "${PROJECT_ROOT}/external/libcurl"
+    tar --checkpoint=.100 -xf "curl-${DATAFED_LIBCURL}.tar.gz" -C "${PROJECT_ROOT}/external/libcurl"
     cd "${PROJECT_ROOT}/external/libcurl/curl-${DATAFED_LIBCURL}"
 
     # Making third party features and dependencies explicit
@@ -675,7 +675,7 @@ install_zlib() {
     fi
     wget "${DATAFED_ZLIB_URL}"
     mkdir -p "${PROJECT_ROOT}/external/zlib"
-    tar -xf "zlib-${DATAFED_ZLIB_VERSION}.tar.gz" -C "${PROJECT_ROOT}/external/zlib"
+    tar --checkpoint=.100 -xf "zlib-${DATAFED_ZLIB_VERSION}.tar.gz" -C "${PROJECT_ROOT}/external/zlib"
     cd "${PROJECT_ROOT}/external/zlib/zlib-${DATAFED_ZLIB_VERSION}"
     PKG_CONFIG_PATH="${DATAFED_DEPENDENCIES_INSTALL_PATH}/lib/pkgconfig" ./configure --prefix="${DATAFED_DEPENDENCIES_INSTALL_PATH}"
     make -j 8
