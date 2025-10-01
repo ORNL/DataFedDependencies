@@ -592,7 +592,10 @@ install_openssl() {
     "$SUDO_CMD" apt update
     "$SUDO_CMD" apt install -y build-essential git
 
-    git clone https://github.com/openssl/openssl "${PROJECT_ROOT}/external/openssl"
+    wget "https://github.com/openssl/openssl/releases/download/openssl-${DATAFED_OPENSSL}/openssl-${DATAFED_OPENSSL}.tar.gz"
+    mkdir -p "${PROJECT_ROOT}/external/openssl"
+    tar -xvzf "openssl-${DATAFED_OPENSSL}.tar.gz" -C "${PROJECT_ROOT}/external/openssl" --strip-components=1
+
     cd "${PROJECT_ROOT}/external/openssl"
     ./config --prefix="${DATAFED_DEPENDENCIES_INSTALL_PATH}"
     make -j 8
