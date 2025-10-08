@@ -32,7 +32,7 @@ if [ $# -eq 1 ]; then
       ;;
     *)
       # If any other argument is provided, install the packages
-      echo "Invalid Argument"
+      echo "ERROR - Invalid Argument"
       ;;
   esac
 fi

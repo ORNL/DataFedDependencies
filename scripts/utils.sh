@@ -7,8 +7,6 @@ then
   PROJECT_ROOT=$(realpath "${SOURCE}/..")
 fi
 
-echo "PROJECT ROOT $PROJECT_ROOT"
-
 export_dependency_version_numbers() {
     # Get the content of the function and remove comments
     variables=$(cat "${PROJECT_ROOT}/scripts/dependency_versions.sh")
@@ -57,8 +55,8 @@ sudo_command() {
           export SUDO_CMD=$(command -v sudo)
           return 0
       else
-          echo "Error: This script requires sudo but sudo is not installed." >&2
-          echo "You are not running as root!" >&2
+          echo "ERROR - This script requires sudo but sudo is not installed." >&2
+          echo "        You are not running as root!" >&2
           exit 1
       fi
       exit $?  # Exit with the same status as the sudo command
