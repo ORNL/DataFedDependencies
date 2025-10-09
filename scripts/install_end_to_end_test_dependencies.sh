@@ -35,7 +35,7 @@ if [ $# -eq 1 ]; then
       local_UNIFY=true
       ;;
     *)
-      echo "Invalid Argument"
+      echo "ERROR - Invalid Argument"
       ;;
   esac
 fi

@@ -58,7 +58,7 @@ while [ : ]; do
         break 
         ;;
     \?) # incorrect option
-        echo "Error: Invalid option"
+        echo "ERROR - Invalid option"
         exit;;
   esac
 done

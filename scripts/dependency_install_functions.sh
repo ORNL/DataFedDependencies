@@ -21,7 +21,7 @@ fi
 
 if [ ! -e "${PROJECT_ROOT}/config/dependencies.sh" ]
 then
-  echo "Please run generate_dependencies_config.sh before installing dependencies"
+  echo "ERROR - Please run generate_dependencies_config.sh before installing dependencies"
   exit 1
 fi
 
@@ -32,7 +32,6 @@ if [ ! -e "$DATAFED_DEPENDENCIES_INSTALL_PATH" ] || [ ! -d "$DATAFED_DEPENDENCIE
     if [ -w "${parent_dir}" ]; then
       mkdir -p "$DATAFED_DEPENDENCIES_INSTALL_PATH"
     else
-      echo "Sudo command $SUDO_CMD"
       "$SUDO_CMD" mkdir -p "$DATAFED_DEPENDENCIES_INSTALL_PATH"
       user=$(whoami)
       "$SUDO_CMD" chown "$user" "$DATAFED_DEPENDENCIES_INSTALL_PATH"
@@ -87,7 +86,7 @@ clean_install_flags() {
 
   # Validate that a prefix was provided
   if [ -z "$prefix" ]; then
-    echo "Error: No prefix provided for clean_install_flags." >&2
+    echo "ERROR - No prefix provided for clean_install_flags." >&2
     return 1 # Indicate an error
   fi
 
@@ -95,10 +94,10 @@ clean_install_flags() {
   local count=$(find "${install_path}" -maxdepth 1 -type f -name "${prefix}*" 2>/dev/null | wc -l)
 
   if [ "${count}" -gt 1 ]; then
-    echo "Warning: Found ${count} installation flag files with prefix '${prefix}'. Cleaning up..."
+    echo "WARNING - Found ${count} installation flag files with prefix '${prefix}'. Cleaning up..."
     # Remove all files matching the pattern
     find "${install_path}" -maxdepth 1 -type f -name "${prefix}*" -delete
-    echo "Removed all existing installation flag files with prefix '${prefix}'."
+    echo "INFO - Removed all existing installation flag files with prefix '${prefix}'."
   fi
 }
 
@@ -113,7 +112,7 @@ install_python() {
     # Check if openssl is already installed, otherwise error since openssl is required
     local OPENSSL_FLAG_PREFIX=".openssl_installed-"
     if [ ! -e "${DATAFED_DEPENDENCIES_INSTALL_PATH}/${OPENSSL_FLAG_PREFIX}${DATAFED_OPENSSL}" ]; then
-      echo "You must first install openssl before installing python"
+      echo "ERROR - You must first install openssl before installing python"
       exit 1
     fi
 
@@ -134,7 +133,7 @@ install_python() {
     touch "${DATAFED_PYTHON_DEPENDENCIES_DIR}/${PYTHON_FLAG_PREFIX}${DATAFED_PYTHON_VERSION}"
     cd "$original_dir"
   else
-    echo "Python already installed, skipping..."
+    echo "INFO - Python already installed, skipping..."
   fi
 
   # Recreate link regardless, doesn't cost anything
@@ -148,11 +147,11 @@ install_python() {
 init_python() {
 
   if [[ ! -v DATAFED_PYTHON_DEPENDENCIES_DIR ]]; then
-    echo "DATAFED_PYTHON_DEPENDENCIES_DIR is not defined please make sure it is defined in the ${PROJECT_ROOT}/config/dependencies.sh file."
+    echo "ERROR - DATAFED_PYTHON_DEPENDENCIES_DIR is not defined please make sure it is defined in the ${PROJECT_ROOT}/config/dependencies.sh file."
     exit 1
   else
     if [[ -z "$DATAFED_PYTHON_DEPENDENCIES_DIR" ]]; then
-      echo "DATAFED_PYTHON_DEPENDENCIES_DIR is defined but is empty please make sure it is defined in ${PROJECT_ROOT}/config/dependencies.sh file."
+      echo "ERROR - DATAFED_PYTHON_DEPENDENCIES_DIR is defined but is empty please make sure it is defined in ${PROJECT_ROOT}/config/dependencies.sh file."
       exit 1
     fi
   fi
@@ -161,7 +160,6 @@ init_python() {
       mkdir -p "$DATAFED_PYTHON_DEPENDENCIES_DIR"
   fi
 
-  echo "venv creating"
   LD_LIBRARY_PATH="$LD_LIBRARY_PATH" ${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION} -m venv "${DATAFED_PYTHON_ENV}"
   # Make sure that pip is installed and upgraded
   LD_LIBRARY_PATH="$LD_LIBRARY_PATH" "${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}" -c "import ssl; print(ssl.OPENSSL_VERSION)"
@@ -306,7 +304,7 @@ install_libzmq() {
       "$SUDO_CMD" rm -rf "${PROJECT_ROOT}/external/libzmq"
     fi
     if [ ! -e "${DATAFED_DEPENDENCIES_INSTALL_PATH}/.libsodium_installed-${DATAFED_LIBSODIUM_VERSION}" ]; then
-      echo "You must first install libsodium before installing libzmq"
+      echo "ERROR - You must first install libsodium before installing libzmq"
       exit 1
     fi
     # Here we are using clone instead of submodule update, because submodule
@@ -376,7 +374,6 @@ install_nlohmann_json() {
     mkdir -p "${PROJECT_ROOT}/external/json"
     tar  --checkpoint=.100 -xvzf v${DATAFED_NLOHMANN_JSON_VERSION}.tar.gz -C "${PROJECT_ROOT}/external/json" --strip-components=1
     cd "${PROJECT_ROOT}/external/json"
-    echo "FILE STRUCTURE $(ls)"
     # Build static
     cmake -S . -B build \
       -DBUILD_SHARED_LIBS=OFF \
@@ -478,15 +475,15 @@ install_nvm() {
 install_ws_node_packages() {
 
   if [ ! -e "${DATAFED_DEPENDENCIES_INSTALL_PATH}/.nvm_installed-${DATAFED_NVM_VERSION}" ]; then
-    echo "You must first install nvm before installing ws node packages."
+    echo "ERROR - You must first install nvm before installing ws node packages."
     exit 1
   fi
   if [ ! -e "${DATAFED_DEPENDENCIES_INSTALL_PATH}/.node_installed-${DATAFED_NODE_VERSION}" ]; then
-    echo "You must first install node before installing ws node packages"
+    echo "ERROR - You must first install node before installing ws node packages"
     exit 1
   fi
   if [ ! -e "${DATAFED_DEPENDENCIES_INSTALL_PATH}/.cmake_installed-${DATAFED_CMAKE_VERSION}" ]; then
-    echo "You must first install cmake before installing ws node packages"
+    echo "ERROR - You must first install cmake before installing ws node packages"
     exit 1
   fi
 
@@ -504,7 +501,7 @@ install_node() {
   if [ ! -e "${DATAFED_DEPENDENCIES_INSTALL_PATH}/${NODE_FLAG_PREFIX}${DATAFED_NODE_VERSION}" ]; then
     local original_dir=$(pwd)
     if [ ! -e "${DATAFED_DEPENDENCIES_INSTALL_PATH}/.nvm_installed-${DATAFED_NVM_VERSION}" ]; then
-      echo "You must first install nvm before installing node."
+      echo "ERROR - You must first install nvm before installing node."
       exit 1
     fi
 
@@ -523,16 +520,15 @@ install_node() {
     [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # This loads nvm
     nvm use "$DATAFED_NODE_VERSION"
   fi
-  echo "NODE VERSION USED/INSTALLED $DATAFED_NODE_VERSION"
 }
 
 install_foxx_cli() {
   if [ ! -e "${DATAFED_DEPENDENCIES_INSTALL_PATH}/.nvm_installed-${DATAFED_NVM_VERSION}" ]; then
-    echo "You must first install nvm before installing foxx_cli."
+    echo "ERROR - You must first install nvm before installing foxx_cli."
     exit 1
   fi
   if [ ! -e "${DATAFED_DEPENDENCIES_INSTALL_PATH}/.node_installed-${DATAFED_NODE_VERSION}" ]; then
-    echo "You must first install node before installing foxx_cli"
+    echo "ERROR - You must first install node before installing foxx_cli"
     exit 1
   fi
   local FOXX_FLAG_PREFIX=".foxx_cli_installed-"
@@ -555,16 +551,16 @@ install_foxx_cli() {
     # check that foxx can be found
     if [ ! -d "${DATAFED_DEPENDENCIES_INSTALL_PATH}/npm" ]
     then
-	echo "Something went wrong Foxx is supposed to be installed i.e. "
-	echo "(${DATAFED_DEPENDENCIES_INSTALL_PATH}/.foxx_cli_installed) "
-	echo "exists. But there is no npm folder in: ${DATAFED_DEPENDENCIES_INSTALL_PATH}"
+	echo "ERROR - Something went wrong Foxx is supposed to be installed i.e. "
+	echo "        (${DATAFED_DEPENDENCIES_INSTALL_PATH}/.foxx_cli_installed) "
+	echo "        exists. But there is no npm folder in: ${DATAFED_DEPENDENCIES_INSTALL_PATH}"
 	exit 1
     fi
     if [ ! -e "${DATAFED_DEPENDENCIES_INSTALL_PATH}/npm/bin/foxx" ]
     then
-	echo "Something went wrong Foxx is supposed to be installed i.e. "
-	echo "(${DATAFED_DEPENDENCIES_INSTALL_PATH}/.foxx_cli_installed) "
-	echo "exists. But there is no foxx binary here: ${DATAFED_DEPENDENCIES_INSTALL_PATH}/npm/bin/foxx"
+	echo "ERROR - Something went wrong Foxx is supposed to be installed i.e. "
+	echo "        (${DATAFED_DEPENDENCIES_INSTALL_PATH}/.foxx_cli_installed) "
+	echo "        exists. But there is no foxx binary here: ${DATAFED_DEPENDENCIES_INSTALL_PATH}/npm/bin/foxx"
 	exit 1
     fi
   fi
@@ -610,7 +606,7 @@ install_openssl() {
     touch "${DATAFED_DEPENDENCIES_INSTALL_PATH}/${OPENSSL_FLAG_PREFIX}${DATAFED_OPENSSL}"
     cd "$original_dir"
   else
-    echo "OpenSSL already installed, skipping..."
+    echo "INFO - OpenSSL already installed, skipping..."
   fi
 }
 
@@ -620,11 +616,11 @@ install_libcurl() {
   if [ ! -e "${DATAFED_DEPENDENCIES_INSTALL_PATH}/${CURL_FLAG_PREFIX}${DATAFED_LIBCURL}" ]; then
     local original_dir=$(pwd)
     if [ ! -e "${DATAFED_DEPENDENCIES_INSTALL_PATH}/.zlib_installed-${DATAFED_ZLIB_VERSION}" ]; then
-      echo "You must first install zlib before installing libcurl packages"
+      echo "ERROR - You must first install zlib before installing libcurl packages"
       exit 1
     fi
     if [ ! -e "${DATAFED_DEPENDENCIES_INSTALL_PATH}/.openssl_installed-${DATAFED_OPENSSL}" ]; then
-      echo "You must first install OpenSSL before installing libcurl packages"
+      echo "ERROR - You must first install OpenSSL before installing libcurl packages"
       exit 1
     fi
     if [ -d "${PROJECT_ROOT}/external/libcurl" ]

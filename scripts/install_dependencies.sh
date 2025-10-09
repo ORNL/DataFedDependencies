@@ -66,7 +66,7 @@ while [ : ]; do
         break 
         ;;
     \?) # incorrect option
-        echo "Error: Invalid option"
+        echo "ERROR - Invalid option"
         exit;;
   esac
 done
@@ -108,13 +108,13 @@ fi
 all_packages=$(cat "$apt_file_path")
 IFS=' ' read -r -a all_packages_array <<< "$all_packages"
 deduplicated_packages_array=($(printf "%s\n" "${all_packages_array[@]}" | sort -u))
-echo "DEPENDENCIES (${deduplicated_packages_array[@]})"
+echo "INFO - Consolidated deduplicated apt packages to install (${deduplicated_packages_array[@]})"
 "$SUDO_CMD" apt-get install -y "${deduplicated_packages_array[@]}"
 
 all_pip_packages=$(cat "$pip_file_path")
 IFS=' ' read -ra all_pip_packages_array <<< "$all_pip_packages"
 if [ ${#all_pip_packages_array[@]} -gt 0 ]; then
-  echo "DEPENDENCIES (${all_pip_packages_array[@]})"
+  echo "INFO - Consolidated deduplicated python packages to install (${all_pip_packages_array[@]})"
   init_python
   source "${DATAFED_PYTHON_ENV}/bin/activate"
   LD_LIBRARY_PATH="$LD_LIBRARY_PATH" "python${DATAFED_PYTHON_VERSION}" -m pip install "${all_pip_packages_array[@]}"
@@ -124,9 +124,9 @@ all_externals=$(cat "$ext_file_path")
 IFS=' ' read -r -a all_externals_array <<< "$all_externals"
 # Deduplication must preserve order
 deduplicated_externals_array=($(echo "${all_externals_array[@]}" | awk '{ for (i=1;i<=NF;i++) if (!seen[$i]++) printf("%s ", $i) }'))
-echo "DEPENDENCIES (${deduplicated_externals_array[@]})"
+echo "INFO - Consolidated depulicated source code dependencies to install (${deduplicated_externals_array[@]})"
 for ext in "${deduplicated_externals_array[@]}"; do
-  echo "===== INSTALLING $ext ======"
+  echo "INFO - ===== INSTALLING $ext ======"
   install_dep_by_name "$ext"
 done
 
@@ -139,6 +139,6 @@ then
   install_arangodb
 fi
 
-echo "===== CLEANUP BUILD FILES ======"
-echo "===== REMOVING ${PROJECT_ROOT}/external ======"
+echo "INFO - ===== CLEANUP BUILD FILES ======"
+echo "INFO - ===== REMOVING ${PROJECT_ROOT}/external ======"
 "$SUDO_CMD" rm -rf "${PROJECT_ROOT}/external"
