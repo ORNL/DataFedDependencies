@@ -7,13 +7,14 @@ SCRIPT=$(realpath "$0")
 SOURCE=$(dirname "$SCRIPT")
 PROJECT_ROOT=$(realpath ${SOURCE}/..)
 
+source "${PROJECT_ROOT}/scripts/dependency_versions.sh"
 source "${PROJECT_ROOT}/scripts/utils.sh"
 source "${PROJECT_ROOT}/scripts/dependency_install_functions.sh"
 
 packages=("host" "libtool" "build-essential" "g++" "gcc" "autoconf"
   "automake" "make" "git" "pkg-config"
   "libglobus-common-dev" "wget" "jq" "sudo" "libboost-all-dev" "libgssapi-krb5-2" "libsqlite3-dev")
-pip_packages=("setuptools" "distro" "jwt" "globus_sdk")
+pip_packages=("setuptools" "distro" "jwt" "globus_sdk~=${DATAFED_PYTHON_GLOBUS_SDK_VERSION}")
 externals=("cmake" "libopenssl" "python" "protobuf" "libsodium" "libzmq")
 
 local_UNIFY=false
