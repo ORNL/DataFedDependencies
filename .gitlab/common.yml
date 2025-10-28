@@ -139,12 +139,18 @@
 # DATAFED_HARBOR_PASSWORD   - needed to run verify_image_upload
 .docker_base_build_script:
     script:
-        - echo "UPSTREAM_DATAFED_DEPENDENCIES_SHA ${UPSTREAM_DATAFED_DEPENDENCIES_SHA}"
-        - echo "UPSTREAM_DATAFED_DEPENDENCIES_BRANCH ${UPSTREAM_DATAFED_DEPENDENCIES_BRANCH}"
-        - echo "UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA ${UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA}"
+        - echo "UPSTREAM_DATAFED_DEPENDENCIES_SHA=${UPSTREAM_DATAFED_DEPENDENCIES_SHA}"
+        - echo "UPSTREAM_DATAFED_DEPENDENCIES_BRANCH=${UPSTREAM_DATAFED_DEPENDENCIES_BRANCH}"
+        - echo "UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA=${UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA}"
+        - |
+          CURRENT_COMMIT=$(git rev-parse HEAD)
+          if [[ -n "$UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA" && \
+                "$UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA" != "$CURRENT_COMMIT" ]]; then
+            echo "❌ Current commit ($CURRENT_COMMIT) does not match upstream submodule commit ($UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA)"
+            exit 1
+          fi
         - docker system prune -f
         - echo "Current git commit is"
-        - git rev-parse HEAD
         - echo "CI_COMMIT_SHA is $CI_COMMIT_SHA"
         - docker build --no-cache -f "${DOCKER_FILE_PATH}" -t "${REGISTRY}/${PROJECT}/${COMPONENT}:latest" .
         - echo "Tagging ${REGISTRY}/${PROJECT}/${COMPONENT}:latest as ${REGISTRY}/${PROJECT}/${COMPONENT}:$CI_COMMIT_SHA"
