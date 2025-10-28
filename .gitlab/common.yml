@@ -65,7 +65,6 @@
             FORCE_BUILD="FALSE"
             echo "Current git commit is"
             git rev-parse HEAD
-            echo "CI_COMMIT_SHA is $CI_COMMIT_SHA"
             set +e
             docker pull --quiet "${REGISTRY}/${PROJECT}/${COMPONENT}:latest"
             if [ $? -eq 0 ]; then echo "Image exists"; else FORCE_BUILD="TRUE"; fi;
@@ -106,6 +105,13 @@
 .verify_image_upload: &verify_image_upload |
     first_iteration="TRUE"
     artifact_count="0"
+    CURRENT_COMMIT=$(git rev-parse HEAD)
+    if [[ -n "$UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA" && \
+          "$UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA" != "$CURRENT_COMMIT" ]]; then
+          git checkout "${UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA}"
+          CURRENT_COMMIT="${UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA}"
+    fi
+    echo "CURRENT_COMMIT is $CURRENT_COMMIT"
     while [ "$artifact_count" == "0" ]; do
       artifact_count=$( "${CI_PROJECT_DIR}/scripts/ci_harbor_artifact_count.sh" -r "${DATAFED_HARBOR_REPOSITORY}")
       error_code="$?"
@@ -117,7 +123,7 @@
       fi;
       echo "Artifact missing from harbor..."
       docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:latest"
-      docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:$CI_COMMIT_SHA"
+      docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:$CURRENT_COMMIT"
       if [ "$first_iteration" == "FALSE" ]
       then
         sleep 5  # Optional: Add a sleep to avoid busy waiting 
@@ -146,21 +152,21 @@
           CURRENT_COMMIT=$(git rev-parse HEAD)
           if [[ -n "$UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA" && \
                 "$UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA" != "$CURRENT_COMMIT" ]]; then
-            echo "❌ Current commit ($CURRENT_COMMIT) does not match upstream submodule commit ($UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA)"
-            exit 1
+                git checkout "${UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA}"
+                CURRENT_COMMIT="${UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA}"
           fi
         - docker system prune -f
         - echo "Current git commit is"
-        - echo "CI_COMMIT_SHA is $CI_COMMIT_SHA"
+        - echo "CURRENT_COMMIT is $CURRENT_COMMIT"
         - docker build --no-cache -f "${DOCKER_FILE_PATH}" -t "${REGISTRY}/${PROJECT}/${COMPONENT}:latest" .
-        - echo "Tagging ${REGISTRY}/${PROJECT}/${COMPONENT}:latest as ${REGISTRY}/${PROJECT}/${COMPONENT}:$CI_COMMIT_SHA"
-        - docker tag "${REGISTRY}/${PROJECT}/${COMPONENT}:latest" "${REGISTRY}/${PROJECT}/${COMPONENT}:$CI_COMMIT_SHA"
+        - echo "Tagging ${REGISTRY}/${PROJECT}/${COMPONENT}:latest as ${REGISTRY}/${PROJECT}/${COMPONENT}:$CURRENT_COMMIT"
+        - docker tag "${REGISTRY}/${PROJECT}/${COMPONENT}:latest" "${REGISTRY}/${PROJECT}/${COMPONENT}:$CURRENT_COMMIT"
         - docker login "${REGISTRY}" -u "${HARBOR_USER}" -p "${HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN}"
         - export DATAFED_HARBOR_REPOSITORY="${COMPONENT}"
         - export DATAFED_HARBOR_USERNAME="${HARBOR_USER}"
         - export DATAFED_HARBOR_PASSWORD="${HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN}"
         - docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:latest"
-        - docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:$CI_COMMIT_SHA"
+        - docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:$CURRENT_COMMIT"
         - *verify_image_upload
     after_script:
         # Needed if the harbor check script errors out.
