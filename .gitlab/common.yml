@@ -57,40 +57,40 @@
 # This is used when tagging the image to help differentiate different layers
 
 .image_check:
-    tags:
-        - docker
-    script:
-        - |
-            docker login "${REGISTRY}" -u "${HARBOR_USER}" -p "${HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN}"
-            FORCE_BUILD="FALSE"
-            echo "Current git commit is"
-            git rev-parse HEAD
-            set +e
-            docker pull --quiet "${REGISTRY}/${PROJECT}/${COMPONENT}:latest"
-            if [ $? -eq 0 ]; then echo "Image exists"; else FORCE_BUILD="TRUE"; fi;
-            set -e
-            if [ "${BUILD_INTERMEDIATE}" == "TRUE" ]
-            then
-              set +e
-              docker pull --quiet "${REGISTRY}/${PROJECT}/${COMPONENT}-${INTERMEDIATE_LAYER_NAME}:latest"
-              if [ $? -eq 0 ]; then echo "Image exists"; else FORCE_BUILD="TRUE"; fi;
-              set -e
-            fi
-            if [ "$FORCE_BUILD" == "TRUE" ]
-            then
-              cp .gitlab/build/force_build_${COMPONENT}_image.yml ${COMPONENT}_image.yml
-            else
-              cp .gitlab/build/build_${COMPONENT}_image.yml ${COMPONENT}_image.yml
-            fi
-            echo "REGISTRY=${REGISTRY}" >> build.env
-            echo "HARBOR_USER=${HARBOR_USER}" >> build.env
-            echo "HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN=${HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN}" >> build.env
-            sed -i 's/\(HARBOR_USER=.*\)\$/\1$$/g' build.env
-    artifacts:
-        paths:
-            - ${COMPONENT}_image.yml
-        reports:
-            dotenv: build.env
+  tags:
+    - docker
+  script:
+    - |
+      docker login "${REGISTRY}" -u "${HARBOR_USER}" -p "${HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN}"
+      FORCE_BUILD="FALSE"
+      echo "Current git commit is"
+      git rev-parse HEAD
+      set +e
+      docker pull --quiet "${REGISTRY}/${PROJECT}/${COMPONENT}:latest"
+      if [ $? -eq 0 ]; then echo "Image exists"; else FORCE_BUILD="TRUE"; fi;
+      set -e
+      if [ "${BUILD_INTERMEDIATE}" == "TRUE" ]
+      then
+        set +e
+        docker pull --quiet "${REGISTRY}/${PROJECT}/${COMPONENT}-${INTERMEDIATE_LAYER_NAME}:latest"
+        if [ $? -eq 0 ]; then echo "Image exists"; else FORCE_BUILD="TRUE"; fi;
+        set -e
+      fi
+      if [ "$FORCE_BUILD" == "TRUE" ]
+      then
+        cp .gitlab/build/force_build_${COMPONENT}_image.yml ${COMPONENT}_image.yml
+      else
+        cp .gitlab/build/build_${COMPONENT}_image.yml ${COMPONENT}_image.yml
+      fi
+      echo "REGISTRY=${REGISTRY}" >> build.env
+      echo "HARBOR_USER=${HARBOR_USER}" >> build.env
+      echo "HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN=${HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN}" >> build.env
+      sed -i 's/\(HARBOR_USER=.*\)\$/\1$$/g' build.env
+  artifacts:
+    paths:
+      - ${COMPONENT}_image.yml
+    reports:
+      dotenv: build.env
 
 # The purpose of this anchor is to check that an image has been uploaded correctly
 # to the registry and if it has not attempt to upload it again.
@@ -103,34 +103,34 @@
 # DATAFED_HARBOR_USERNAME   - needed to run ci_harbor_artifact_count
 # DATAFED_HARBOR_PASSWORD   - needed to run ci_harbor_artifact_count
 .verify_image_upload: &verify_image_upload |
-    first_iteration="TRUE"
-    artifact_count="0"
-    CURRENT_COMMIT=$(git rev-parse HEAD)
-    if [[ -n "$UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA" && \
-          "$UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA" != "$CURRENT_COMMIT" ]]; then
-          git checkout "${UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA}"
-          CURRENT_COMMIT="${UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA}"
+  first_iteration="TRUE"
+  artifact_count="0"
+  CURRENT_COMMIT=$(git rev-parse HEAD)
+  if [[ -n "$UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA" && \
+        "$UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA" != "$CURRENT_COMMIT" ]]; then
+        git checkout "${UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA}"
+        CURRENT_COMMIT="${UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA}"
+  fi
+  echo "CURRENT_COMMIT is $CURRENT_COMMIT"
+  while [ "$artifact_count" == "0" ]; do
+    artifact_count=$( "${CI_PROJECT_DIR}/scripts/ci_harbor_artifact_count.sh" -r "${DATAFED_HARBOR_REPOSITORY}")
+    error_code="$?"
+    if [ "$error_code" -ne 0 ]
+    then
+      echo "Error encountered in ci_harbor_artifact_count $error_code"
+      cat "${CI_PROJECT_DIR}/harbor_check.log"
+      exit 1
+    fi;
+    echo "Artifact missing from harbor..."
+    docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:latest"
+    docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:$CURRENT_COMMIT"
+    if [ "$first_iteration" == "FALSE" ]
+    then
+      sleep 5  # Optional: Add a sleep to avoid busy waiting 
+    else
+      first_iteration="FALSE"
     fi
-    echo "CURRENT_COMMIT is $CURRENT_COMMIT"
-    while [ "$artifact_count" == "0" ]; do
-      artifact_count=$( "${CI_PROJECT_DIR}/scripts/ci_harbor_artifact_count.sh" -r "${DATAFED_HARBOR_REPOSITORY}")
-      error_code="$?"
-      if [ "$error_code" -ne 0 ]
-      then
-        echo "Error encountered in ci_harbor_artifact_count $error_code"
-        cat "${CI_PROJECT_DIR}/harbor_check.log"
-        exit 1
-      fi;
-      echo "Artifact missing from harbor..."
-      docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:latest"
-      docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:$CURRENT_COMMIT"
-      if [ "$first_iteration" == "FALSE" ]
-      then
-        sleep 5  # Optional: Add a sleep to avoid busy waiting 
-      else
-        first_iteration="FALSE"
-      fi
-    done
+  done
 
 # NOTE
 #
@@ -144,28 +144,28 @@
 # DATAFED_HARBOR_USERNAME   - needed to run verify_image_upload
 # DATAFED_HARBOR_PASSWORD   - needed to run verify_image_upload
 .docker_base_build_script:
-    script:
-        - echo "UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA=${UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA}"
-        - CURRENT_COMMIT=$(git rev-parse HEAD)
-        - echo "Current git commit sha, before check $CURRENT_COMMIT" 
-        - |
-          if [[ -n "$UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA" && \
-                "$UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA" != "$CURRENT_COMMIT" ]]; then
-                git checkout "${UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA}"
-                CURRENT_COMMIT="${UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA}"
-          fi
-        - docker system prune -f
-        - echo "Current git commit after check, and checkout if needed, is $CURRENT_COMMIT"
-        - docker build --no-cache -f "${DOCKER_FILE_PATH}" -t "${REGISTRY}/${PROJECT}/${COMPONENT}:latest" .
-        - echo "Tagging ${REGISTRY}/${PROJECT}/${COMPONENT}:latest as ${REGISTRY}/${PROJECT}/${COMPONENT}:$CURRENT_COMMIT"
-        - docker tag "${REGISTRY}/${PROJECT}/${COMPONENT}:latest" "${REGISTRY}/${PROJECT}/${COMPONENT}:$CURRENT_COMMIT"
-        - docker login "${REGISTRY}" -u "${HARBOR_USER}" -p "${HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN}"
-        - export DATAFED_HARBOR_REPOSITORY="${COMPONENT}"
-        - export DATAFED_HARBOR_USERNAME="${HARBOR_USER}"
-        - export DATAFED_HARBOR_PASSWORD="${HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN}"
-        - docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:latest"
-        - docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:$CURRENT_COMMIT"
-        - *verify_image_upload
-    after_script:
-        # Needed if the harbor check script errors out.
-        - if [ -f "${CI_PROJECT_DIR}/harbor_check.log" ]; then cat "${CI_PROJECT_DIR}/harbor_check.log"; fi;
+  script:
+    - echo "UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA=${UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA}"
+    - CURRENT_COMMIT=$(git rev-parse HEAD)
+    - echo "Current git commit sha, before check $CURRENT_COMMIT"
+    - |
+      if [[ -n "$UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA" && \
+            "$UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA" != "$CURRENT_COMMIT" ]]; then
+            git checkout "${UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA}"
+            CURRENT_COMMIT="${UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA}"
+      fi
+    - docker system prune -f
+    - echo "Current git commit after check, and checkout if needed, is $CURRENT_COMMIT"
+    - docker build --no-cache -f "${DOCKER_FILE_PATH}" -t "${REGISTRY}/${PROJECT}/${COMPONENT}:latest" .
+    - echo "Tagging ${REGISTRY}/${PROJECT}/${COMPONENT}:latest as ${REGISTRY}/${PROJECT}/${COMPONENT}:$CURRENT_COMMIT"
+    - docker tag "${REGISTRY}/${PROJECT}/${COMPONENT}:latest" "${REGISTRY}/${PROJECT}/${COMPONENT}:$CURRENT_COMMIT"
+    - docker login "${REGISTRY}" -u "${HARBOR_USER}" -p "${HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN}"
+    - export DATAFED_HARBOR_REPOSITORY="${COMPONENT}"
+    - export DATAFED_HARBOR_USERNAME="${HARBOR_USER}"
+    - export DATAFED_HARBOR_PASSWORD="${HARBOR_DATAFED_GITLAB_CI_REGISTRY_TOKEN}"
+    - docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:latest"
+    - docker push "${REGISTRY}/${PROJECT}/${DATAFED_HARBOR_REPOSITORY}:$CURRENT_COMMIT"
+    - *verify_image_upload
+  after_script:
+    # Needed if the harbor check script errors out.
+    - if [ -f "${CI_PROJECT_DIR}/harbor_check.log" ]; then cat "${CI_PROJECT_DIR}/harbor_check.log"; fi;

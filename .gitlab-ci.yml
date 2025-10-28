@@ -15,20 +15,20 @@
 # Particularly if stage_clear_cache.yml contains jobs with the needs
 # keyword that names a job in infrastructure.yml
 include:
-    - local: .gitlab/stage_pipeline_serialize.yml
-    - local: .gitlab/infrastructure.yml
-    - local: .gitlab/stage_clear_cache.yml
-    - local: .gitlab/stage_build_base.yml
-    - local: .gitlab/stage_test.yml
+  - local: .gitlab/stage_pipeline_serialize.yml
+  - local: .gitlab/infrastructure.yml
+  - local: .gitlab/stage_clear_cache.yml
+  - local: .gitlab/stage_build_base.yml
+  - local: .gitlab/stage_test.yml
 
 stages:
-    - pipeline-serialize
-    - ci-infrastructure-check
-    - trigger-infrastructure
-    - signal
-    - clear-docker-cache
-    - build-base
-    - test # Required for gitlab sast templates
+  - pipeline-serialize
+  - ci-infrastructure-check
+  - trigger-infrastructure
+  - signal
+  - clear-docker-cache
+  - build-base
+  - test # Required for gitlab sast templates
 
 # WARNING
 #
@@ -37,7 +37,7 @@ stages:
 #
 # [ -f file_path ] && ok do this....
 variables:
-    HARBOR_USER: "robot$$datafed+harbor_datafed_gitlab_ci_registry_2"
-    REGISTRY: "camden.ornl.gov"
-    DATAFED_DEPENDENCIES_INSTALL_PATH: "/shared/install"
-    DOCKER_TLS_CERTDIR: "" # Required for running docker in docker
+  HARBOR_USER: "robot$$datafed+harbor_datafed_gitlab_ci_registry_2"
+  REGISTRY: "camden.ornl.gov"
+  DATAFED_DEPENDENCIES_INSTALL_PATH: "/shared/install"
+  DOCKER_TLS_CERTDIR: "" # Required for running docker in docker
