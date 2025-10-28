@@ -139,8 +139,9 @@
 # DATAFED_HARBOR_PASSWORD   - needed to run verify_image_upload
 .docker_base_build_script:
     script:
-        - echo "UPSTREAM_DATAFED_DEPENCIES_SHA ${UPSTREAM_DATAFED_DEPENCIES_SHA}"
+        - echo "UPSTREAM_DATAFED_DEPENDENCIES_SHA ${UPSTREAM_DATAFED_DEPENDENCIES_SHA}"
         - echo "UPSTREAM_DATAFED_DEPENDENCIES_BRANCH ${UPSTREAM_DATAFED_DEPENDENCIES_BRANCH}"
+        - echo "UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA: ${UPSTREAM_DATAFED_DEPENDENCIES_SUBMODULE_SHA}"
         - docker system prune -f
         - echo "Current git commit is"
         - git rev-parse HEAD
