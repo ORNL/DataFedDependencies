@@ -154,10 +154,11 @@ install_python() {
       echo "ERROR: $python_path exists but is not a file or symlink"
       exit 1
     fi
+  else
+  then
+    # Create link because it doesn't exist
+    ln -s "${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}" "$python_path"
   fi
-
-  # Create link because it doesn't exist
-  ln -s "${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}" "$python_path"
 
   export PYTHON="${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}"
 }
