@@ -155,7 +155,6 @@ install_python() {
       exit 1
     fi
   else
-  then
     # Create link because it doesn't exist
     ln -s "${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}" "$python_path"
   fi
