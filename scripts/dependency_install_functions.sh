@@ -138,20 +138,27 @@ install_python() {
 
   # Recreate link regardless, doesn't cost anything
   mkdir -p "${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin"
-  if [ ! -f "${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin/python${DATAFED_PYTHON_VERSION}" ]; then
-    if [ -L "${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin/python${DATAFED_PYTHON_VERSION}" ]; then
-      # Overwrite the entry
-      ln -fs "${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}" "${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin/python${DATAFED_PYTHON_VERSION}"
-    else
-      if [ -e "${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin/python${DATAFED_PYTHON_VERSION}" ]
-      then
-        echo "ERROR - ${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin/python${DATAFED_PYTHON_VERSION} is exists but it is not a file or a soft link."
-        exit 1
+
+  python_path="${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin/python${DATAFED_PYTHON_VERSION}"
+
+  if [ -L "$python_path" ]; then
+      if [ ! -e "$python_path" ]; then
+          echo "Broken symlink detected; fixing..."
+          ln -fs "${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}" "$python_path"
       fi
-      # There is no entry so create one
-      ln -s "${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}" "${DATAFED_DEPENDENCIES_INSTALL_PATH}/bin/python${DATAFED_PYTHON_VERSION}"
+  fi
+
+  # If it exists but is not a file or a symlink → error
+  if [ -e "$python_path" ]; then
+    if [ ! -f "$python_path" ]; then
+      echo "ERROR: $python_path exists but is not a file or symlink"
+      exit 1
     fi
   fi
+
+  # Create link because it doesn't exist
+  ln -s "${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}" "$python_path"
+
   export PYTHON="${DATAFED_PYTHON_DEPENDENCIES_DIR}/bin/python${DATAFED_PYTHON_VERSION}"
 }
 
