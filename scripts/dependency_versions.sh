@@ -23,7 +23,7 @@ DATAFED_DYNAMIC_LIBRARY_PROTOBUF_VERSION="25.7.0"
 # Full version
 DATAFED_FULL_PROTOBUF_VERSION="4.25.7"
 DATAFED_LIBCURL="8.18.0"
-DATAFED_LIBCURL_URL="https://github.com/curl/curl/releases/download/curl-8_16_0/curl-8.16.0.tar.gz"
+DATAFED_LIBCURL_URL="https://github.com/curl/curl/releases/download/curl-8_18_0/curl-8.18.0.tar.gz"
 DATAFED_OPENSSL="3.2.6"
 DATAFED_OPENSSL_COMMIT="86874e2"
 DATAFED_BOOST="1.74.0"
