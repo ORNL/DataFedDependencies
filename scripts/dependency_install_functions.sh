@@ -325,13 +325,22 @@ install_libzmq() {
       echo "ERROR - You must first install libsodium before installing libzmq"
       exit 1
     fi
-    # Here we are using clone instead of submodule update, because submodule
-    # requires the .git folder exist and the current folder be considered a repo
-    # this creates problems in docker because each time a commit is made the 
-    # .git folder contents are changed causing a fresh rebuild of all containers
-    git clone https://github.com/zeromq/libzmq.git "${PROJECT_ROOT}/external/libzmq"
+
+    # History
+    #
+    # 1. Here we were originally using clone instead of submodule update,
+    # because submodule requires the .git folder exist and the current folder
+    # be considered a repo this creates problems in docker because each time a
+    # commit is made the .git folder contents are changed causing a fresh
+    # rebuild of all containers
+    # 2. Clone has been superseded by using wget with the release .tar.gz file
+    # this was a network optimization. Cloning pulls in all the git history 
+    # which is not needed and takes up more space.
+
+    wget "https://github.com/zeromq/libzmq/releases/download/v${DATAFED_LIBZMQ_VERSION}/zeromq-${DATAFED_LIBZMQ_VERSION}.tar.gz"
+    mkdir -p "${PROJECT_ROOT}/external/libzmq"
+    tar -xvzf "zeromq-${DATAFED_LIBZMQ_VERSION}.tar.gz" -C "${PROJECT_ROOT}/external/libzmq" --strip-components=1
     cd "${PROJECT_ROOT}/external/libzmq"
-    git checkout "v${DATAFED_LIBZMQ_VERSION}"
     # Build static only
     cmake -S. -B build \
       -DBUILD_STATIC=ON \
