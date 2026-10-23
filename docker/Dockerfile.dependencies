@@ -36,6 +36,7 @@ COPY ./scripts/install_dependencies.sh ${BUILD_DIR}/scripts/
 COPY ./scripts/utils.sh ${BUILD_DIR}/scripts/utils.sh
 COPY ./scripts/install_docs_dependencies.sh ${BUILD_DIR}/scripts/
 COPY ./web/package.json ${BUILD_DIR}/web/package.json
+COPY ./web/zeromq-compat ${BUILD_DIR}/web/zeromq-compat
 COPY ./scripts/generate_dependencies_config.sh ${BUILD_DIR}/scripts/generate_dependencies_config.sh
 
 RUN echo "#!/bin/bash\n\$@" > /usr/bin/sudo && chmod +x /usr/bin/sudo

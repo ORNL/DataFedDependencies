@@ -471,8 +471,7 @@ install_gcs() {
     curl -LOs \
     "https://downloads.globus.org/globus-connect-server/stable/installers/repo/deb/globus-repo_${DATAFED_GLOBUS_VERSION}_all.deb"
     "$SUDO_CMD" dpkg -i "globus-repo_${DATAFED_GLOBUS_VERSION}_all.deb"
-    "$SUDO_CMD" apt-key add /usr/share/globus-repo/RPM-GPG-KEY-Globus
-    # Need a second update command after adding the globus GPG key
+    # The updated globus-repo package supplies its own signed-by keyring.
     "$SUDO_CMD" apt update
     "$SUDO_CMD" apt-get install globus-connect-server54 -y
     
@@ -518,6 +517,12 @@ install_ws_node_packages() {
   export NVM_DIR="${DATAFED_DEPENDENCIES_INSTALL_PATH}/nvm"
   export NODE_VERSION="$DATAFED_NODE_VERSION"
   "$NVM_DIR/nvm-exec" npm --prefix "${PROJECT_ROOT}/web" install "${PROJECT_ROOT}/web"
+  # Keep the local ZeroMQ compatibility adapter portable when node_modules is copied.
+  local zmq_adapter="${PROJECT_ROOT}/web/node_modules/zeromq"
+  if [ -L "$zmq_adapter" ]; then
+    unlink "$zmq_adapter"
+    cp -R "${PROJECT_ROOT}/web/zeromq-compat" "$zmq_adapter"
+  fi
 }
 
 
@@ -561,14 +566,14 @@ install_foxx_cli() {
   local FOXX_FLAG_PREFIX=".foxx_cli_installed-"
   clean_install_flags "$FOXX_FLAG_PREFIX"
   # By default this will place NVM in $HOME/.nvm
-  if [ ! -e "${DATAFED_DEPENDENCIES_INSTALL_PATH}/${FOXX_FLAG_PREFIX}" ]; then
+  if [ ! -e "${DATAFED_DEPENDENCIES_INSTALL_PATH}/${FOXX_FLAG_PREFIX}${DATAFED_FOXX_CLI_VERSION}" ]; then
     local original_dir=$(pwd)
     export NVM_DIR="${DATAFED_DEPENDENCIES_INSTALL_PATH}/nvm"
     [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # This loads nvm
     export NODE_VERSION="$DATAFED_NODE_VERSION"
-    "$NVM_DIR/nvm-exec" npm install --global foxx-cli --prefix "${DATAFED_DEPENDENCIES_INSTALL_PATH}/npm"
+    "$NVM_DIR/nvm-exec" npm install --ignore-scripts --global "foxx-cli@${DATAFED_FOXX_CLI_VERSION}" --prefix "${DATAFED_DEPENDENCIES_INSTALL_PATH}/npm"
     # Mark foxx_cli as installed
-    touch "${DATAFED_DEPENDENCIES_INSTALL_PATH}/${FOXX_FLAG_PREFIX}"
+    touch "${DATAFED_DEPENDENCIES_INSTALL_PATH}/${FOXX_FLAG_PREFIX}${DATAFED_FOXX_CLI_VERSION}"
     cd "$original_dir"
   else
     export NVM_DIR="${DATAFED_DEPENDENCIES_INSTALL_PATH}/nvm"
@@ -599,7 +604,7 @@ install_arangodb() {
   echo 'deb https://download.arangodb.com/arangodb312/DEBIAN/ /' | "$SUDO_CMD" tee /etc/apt/sources.list.d/arangodb.list
   "$SUDO_CMD" apt-get install apt-transport-https
   "$SUDO_CMD" apt-get update
-  "$SUDO_CMD" apt-get install arangodb3
+  "$SUDO_CMD" apt-get install "arangodb3=${DATAFED_ARANGODB_VERSION}*"
 }
 
 install_openssl() {

@@ -15,3 +15,15 @@ documentation, papers, and presentations describing the architecture and use
 cases of DataFed.
 
 NOTE: This repository is meant simply for managing the external dependencies of DataFed.
+
+## Upgrade compatibility
+
+The small `web/zeromq-compat` adapter preserves DataFed's existing ZeroMQ socket API
+while using ZeroMQ.js 6.8.0 with the updated Node runtime.
+
+Foxx CLI is pinned to 2.1.1 for provisioning and upgrades; its package internals are
+unchanged. The `extract-zip` advisories (GHSA-jmr9-qjv8-65gv and GHSA-7pqw-9j4j-h8q3)
+are accepted for the current deployment, which uploads trusted local sources and
+uses no archive extraction. Run it as an unprivileged deployment user. Successful
+deployment commands were checked against a mock ArangoDB; a full deployment was
+not run. Upstream Foxx error reporting still uses `util.isError`, removed in Node 24.

@@ -1,0 +1,10 @@
+{
+  "name": "zeromq",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DataFed's existing ZeroMQ API backed by the maintained upstream compatibility interface",
+  "main": "index.cjs",
+  "dependencies": {
+    "zeromq-native": "npm:zeromq@6.8.0"
+  }
+}

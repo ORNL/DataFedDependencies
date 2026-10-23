@@ -2,22 +2,22 @@
   "private": true,
   "dependencies": {
     "client-oauth2": "^4.3.3",
-    "cookie-parser": "^1.4.5",
+    "cookie-parser": "^1.4.7",
     "ect": "^0.5.9",
-    "express": "^4.18.2",
-    "express-session": "^1.17.2",
-    "helmet": "^4.6.0",
-    "ini": "^2.0.0",
-    "protobufjs": "^6.11.2",
-    "uuid": "^9.0.0",
-    "zeromq": "^5.2.0",
-    "sanitize-html": "^2.11.0"
+    "express": "^4.22.3",
+    "express-session": "^1.19.0",
+    "helmet": "^8.3.0",
+    "ini": "^7.0.0",
+    "protobufjs": "^8.8.1",
+    "uuid": "^14.0.3",
+    "zeromq": "file:./zeromq-compat",
+    "sanitize-html": "^2.18.1"
   },
   "devDependencies": {
-    "chai": "^4",
+    "chai": "^6.3.0",
     "esm": "^3.2.25",
-    "mocha": "^10.8.2",
-    "pug": "^3.0.3",
-    "sinon": "17.0.0"
+    "mocha": "^12.0.3",
+    "pug": "^3.0.4",
+    "sinon": "22.1.0"
   }
 }
