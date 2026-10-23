@@ -259,11 +259,8 @@ install_protobuf() {
     init_python
     source "${DATAFED_PYTHON_ENV}/bin/activate"
     LD_LIBRARY_PATH="$LD_LIBRARY_PATH" PATH="$PATH" python${DATAFED_PYTHON_VERSION} -m pip install numpy tzdata
-    LD_LIBRARY_PATH="$LD_LIBRARY_PATH" PATH="$PATH" python${DATAFED_PYTHON_VERSION} setup.py build
-    LD_LIBRARY_PATH="$LD_LIBRARY_PATH" PATH="$PATH" python${DATAFED_PYTHON_VERSION} setup.py test
-    # Because we have activaited a venv we don't want to use the --user flag
-    # with the install command
-    LD_LIBRARY_PATH="$LD_LIBRARY_PATH" PATH="$PATH" "python${DATAFED_PYTHON_VERSION}" setup.py install
+    # Recent Protobuf Git checkouts no longer contain python/setup.py.
+    LD_LIBRARY_PATH="$LD_LIBRARY_PATH" PATH="$PATH" "python${DATAFED_PYTHON_VERSION}" -m pip install "protobuf==${DATAFED_FULL_PROTOBUF_VERSION}"
     cd ../
     # Cleanup build file with root ownership
     if [ -f build/install_manifest.txt ]
