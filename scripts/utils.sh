@@ -8,23 +8,17 @@ then
 fi
 
 export_dependency_version_numbers() {
-    # Get the content of the function and remove comments
-    variables=$(cat "${PROJECT_ROOT}/scripts/dependency_versions.sh")
+    # Resolve relative to this utility, regardless of the caller's PROJECT_ROOT.
+    local versions_file="$(dirname "$(realpath "${BASH_SOURCE[0]}")")/dependency_versions.sh"
+    local variable_name
+    source "$versions_file" || return
 
-    local content="$(echo "${variables}" | sed '/^$/d;/^#/d')"
-    
-    # Extract variable assignments from the content
-    local assignments=$(echo "$content" | grep -Eo '\b[a-zA-Z_][a-zA-Z_0-9]*="[^\"]*"')
-
-    echo "Variables are $variables"
-    echo "Content is $content"
-    echo "Assignments is $assignments"
-    # Loop through each assignment, export the variable
-    # Note: This may override existing variables
-    for assignment in $assignments; do
-        echo "export $assignment"
-        export "$assignment"
-    done
+    # Export parsed values, including assignments that do not use quotes.
+    while IFS='=' read -r variable_name _; do
+        if [[ "$variable_name" =~ ^DATAFED_[A-Z0-9_]+$ ]]; then
+            export "$variable_name"
+        fi
+    done <"$versions_file"
 }
 
 empty_command() {

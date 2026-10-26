@@ -20,6 +20,7 @@ pkg-config autoconf automake unzip libcurl4-openssl-dev wget \
 rapidjson-dev libkrb5-dev git libssl-dev
 
 cd ~
+install_openssl
 install_python
 install_cmake
 cd ~
