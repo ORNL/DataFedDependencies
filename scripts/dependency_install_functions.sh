@@ -238,10 +238,15 @@ install_protobuf() {
     # libzmq picks up any shared file regardless of whether you have told it to 
     # only use static libraries or not.
     # NOTE - static libraries must be built first
+    # Protobuf 36 first searches for an installed Abseil without checking its
+    # version. Fetch its pinned dependencies to avoid using older system headers
+    # (for example, Ubuntu's Abseil 20230802).
     cmake -S . -B build \
+      -DCMAKE_CXX_STANDARD=17 \
       -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
       -DBUILD_SHARED_LIBS=OFF \
       -Dprotobuf_BUILD_TESTS=OFF \
+      -Dprotobuf_FORCE_FETCH_DEPENDENCIES=ON \
       -DABSL_PROPAGATE_CXX_STD=ON \
       -DCMAKE_INSTALL_PREFIX="${DATAFED_DEPENDENCIES_INSTALL_PATH}"
     cmake --build build -j 8
