@@ -16,6 +16,19 @@ cases of DataFed.
 
 NOTE: This repository is meant simply for managing the external dependencies of DataFed.
 
+## Web dependency ownership
+
+`web/package.json` is the authoritative source for DataFed web `dependencies`,
+`devDependencies`, and security `overrides`. The dependency image installs this
+manifest directly. DataFed generates its application `web/package.json` by
+combining these sections with application metadata from `web/package.json.in`.
+Update dependency versions and overrides here rather than in the application
+template. The relative `file:./zeromq-compat` dependency must be shipped alongside
+the manifest when installing packages in another directory.
+
+Commit dependency changes in this repository, then update DataFed's submodule
+reference and rebuild the dependency and web images.
+
 ## Upgrade compatibility
 
 The small `web/zeromq-compat` adapter preserves DataFed's existing ZeroMQ socket API

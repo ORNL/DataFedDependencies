@@ -517,7 +517,8 @@ install_ws_node_packages() {
     exit 1
   fi
 
-  # Configure the package.json.in file -> package.json
+  # Install the authoritative web dependency manifest. DataFed merges these
+  # dependency sections with its application metadata when configuring the app.
   export NVM_DIR="${DATAFED_DEPENDENCIES_INSTALL_PATH}/nvm"
   export NODE_VERSION="$DATAFED_NODE_VERSION"
   "$NVM_DIR/nvm-exec" npm --prefix "${PROJECT_ROOT}/web" install "${PROJECT_ROOT}/web"
